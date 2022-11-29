@@ -5,19 +5,20 @@ import pandas as pd
 def load_data(messages_filepath, categories_filepath):
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
-    df = messages.merge(categories, on="id")
-    categories = categories["categories"].str.split(";",expand=True)
-    row = categories[:1]
-    category_colnames = row.apply(lambda x: x.str.slice(stop=-2)).values[0]
+    df = messages.merge(categories, on="id", how='inner')
+    categories = categories["categories"].str.split(";", expand=True)
+    row = categories.iloc[0, :]
+    category_colnames = row.apply(lambda x: x[:-2])
     categories.columns = category_colnames
     for column in categories:
     # set each value to be the last character of the string
-        categories[column] = categories[column].str.slice(start=-1)
-
+        categories[column] = categories[column].str[-1]
         # convert column from string to numeric
         categories[column] = categories[column].astype(int)
+    categories.replace(2, 1, inplace=True)
     df.drop("categories", axis=1, inplace=True)
     df = pd.concat([df, categories], axis=1)
+    df.dropna(subset=category_colnames, inplace=True)
     return df
 
 
@@ -28,7 +29,7 @@ def clean_data(df):
 
 def save_data(df, database_filename):
     engine = create_engine('sqlite:///'+database_filename)
-    df.to_sql('DisasterResponse', engine, index=False)  
+    df.to_sql('DisasterResponse', engine,if_exists = 'replace', index=False)
 
 
 def main():
