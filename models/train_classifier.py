@@ -10,6 +10,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
@@ -49,19 +50,19 @@ def build_model():
         ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
-    # Parameters set to reduce model size in order to upload
-    parameters = {
-        'clf__estimator__learning_rate': [0.5, 1.0],
-        'clf__estimator__n_estimators': [10, 20]
-
+    parameters = {'vect__ngram_range': ((1, 1), (1, 2))
+        , 'vect__max_df': (0.5, 0.75, 1.0)
+        , 'tfidf__use_idf': (True, False)
+        , 'clf__estimator__n_estimators': [50, 100, 200]
+        , 'clf__estimator__min_samples_split': [2, 3, 4]
     }
-    cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=4, verbose=2, cv=3)
+    cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=12, verbose=2, cv=3)
     return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
     y_pred = model.predict(X_test)
-    class_report = classification_report(y_test, y_pred, target_names=category_names)
+    class_report = classification_report(Y_test, y_pred, target_names=category_names)
     print(class_report)
 
 
