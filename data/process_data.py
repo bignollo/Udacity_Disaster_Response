@@ -3,6 +3,14 @@ from sqlalchemy import  create_engine
 import pandas as pd
 
 def load_data(messages_filepath, categories_filepath):
+    """
+    INPUT:
+    messages_filepath - path to messages csv file
+    categories_filepath - path to categories csv file
+
+    OUTPUT:
+    df - Merged and cleaned data
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, on="id", how='inner')
@@ -23,11 +31,26 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    """
+    INPUT:
+    df - Merged and cleaned data
+
+    OUTPUT:
+    df - data with no duplicates
+    """
     df = df.drop_duplicates()
     
     return df
 
 def save_data(df, database_filename):
+    """
+    INPUT:
+    df - cleaned data
+    database_filename - database filename for sqlite database with (.db) file type
+
+    OUTPUT:
+    None - save cleaned data into sqlite database
+    """
     engine = create_engine('sqlite:///'+database_filename)
     df.to_sql('DisasterResponse', engine,if_exists = 'replace', index=False)
 

@@ -19,6 +19,15 @@ from sklearn.multioutput import MultiOutputClassifier
 import pickle
 
 def load_data(database_filepath):
+    """
+    INPUT:
+    database_filepath - path to database to be loaded
+
+    OUTPUT:
+    X - messages (input variable)
+    y - categories of the messages (output variable)
+    category_names - category name for y
+    """
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('DisasterResponse', engine)
     X = df.message
@@ -28,6 +37,13 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    """
+    INPUT:
+    text - raw text
+
+    OUTPUT:
+    clean_tokens - tokenized messages
+    """
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -45,6 +61,13 @@ def tokenize(text):
 
 
 def build_model():
+    """
+    INPUT:
+    None
+
+    OUTPUT:
+    cv = ML model pipeline after performing grid search
+    """
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
@@ -61,12 +84,30 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """
+    INPUT:
+    model - ML model
+    X_test - test messages
+    y_test - categories for test messages
+    category_names - category name for y
+
+    OUTPUT:
+    none - print scores (precision, recall, f1-score) for each output category of the dataset.
+    """
     y_pred = model.predict(X_test)
     class_report = classification_report(Y_test, y_pred, target_names=category_names)
     print(class_report)
 
 
 def save_model(model, model_filepath):
+    """
+    INPUT:
+    model - ML model
+    model_filepath - location to save the model
+
+    OUTPUT:
+    none
+    """
     with open(model_filepath, 'wb') as file:
         pickle.dump(model, file)
 
